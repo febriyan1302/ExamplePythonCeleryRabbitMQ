@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - 5000:5000
+    volumes:
+      - .:/code
+    environment:
+      FLASK_ENV: development
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  consumer_send:
+    build: .
+    volumes:
+      - .:/code
+    command: celery -A tasks worker -Q send -l info --uid=nobody --gid=nogroup -n consumer_send@%h
+    depends_on:
+      - rabbitmq
+
+  flower:
+    image: mher/flower:0.9.7
+    ports:
+      - 5555:5555
+    volumes:
+      - .:/code
+    working_dir: /code
+    command: python -m flower -A tasks
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+    environment:
+      CELERY_BROKER_URL: amqp://guest@rabbitmq:5672
+      CELERY_RESULT_BACKEND: amqp://guest@rabbitmq:5672
+
