@@ -1,5 +1,5 @@
 # ExamplePythonCeleryRabbitMQ
 
-Task Framework : Celery
-Rest Framework : FLask
-Message Broker : RabbitMQ
+1. Task Framework : Celery
+2. Rest Framework : FLask
+3. Message Broker : RabbitMQ
